@@ -75,6 +75,8 @@ def fuzzify(crisp_value, mf_definitions):
 # =============================================================================
 # VISUALIZATION FUNCTIONS
 # =============================================================================
+CONSISTENT_FIG_SIZE = (10, 6)
+
 def plot_mfs(title, xlabel, mf_definitions, crisp_input=None, input_name="Input"):
     """
     Function to plot MFs, now using a loop with linear_interpolate to generate the plot lines.
@@ -109,12 +111,14 @@ def plot_clipped_output_sets(rule_strengths):
     fast_strength = rule_strengths['Fast']
     speed = np.arange(0, 100.1, 0.1)
 
-    slow_x_points = [0, 45.825, 50, 100.1]
+    # The plateau ends at x=30.
+    slow_x_points = [0, 60, 75, 100.1]
     slow_y_points = [slow_strength, slow_strength, 0, 0]
 
     slow_mf_clipped = [linear_interpolate(s, slow_x_points, slow_y_points) for s in speed]
 
-    fast_x_points = [0, 50, 90, 100.1]
+    # The ramp ends and the plateau begins at x=65.
+    fast_x_points = [0, 25, 65, 100.1]
     fast_y_points = [0, 0, fast_strength, fast_strength]
 
     fast_mf_clipped = [linear_interpolate(s, fast_x_points, fast_y_points) for s in speed]
@@ -157,7 +161,7 @@ def plot_rule_application_and_aggregation(rule_strengths):
     fast_mf_clipped = np.minimum(fast_mf_orig, fast_strength)
     aggregated_shape = np.maximum(slow_mf_clipped, fast_mf_clipped)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=CONSISTENT_FIG_SIZE)
     plt.plot(speed, slow_mf_orig, 'g--', label='Original "Slow" MF')
     plt.plot(speed, fast_mf_orig, color='orange', linestyle='--', label='Original "Fast" MF')
     plt.fill_between(speed, aggregated_shape, color='royalblue', alpha=0.8, label='Final Aggregated Shape')
@@ -214,7 +218,7 @@ def aggregate_and_defuzzify(rule_strengths):
     print(f"COG = SUM(xy) / SUM(y)")
     print(f"COG = {sum_xy:.3f} / {sum_y:.3f} = {cog:.5f}")
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=CONSISTENT_FIG_SIZE)
     fine_x = np.arange(0, 100.1, 0.5)
     # Final aggregated shape point-by-point
     fine_y = [linear_interpolate(x, agg_x_points, agg_y_points) for x in fine_x]
