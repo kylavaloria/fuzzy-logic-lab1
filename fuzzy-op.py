@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 def linear_interpolate(x, x_points, y_points):
     """
     Performs a manual linear interpolation for a single point x.
-    This function replaces np.interp to show the underlying calculation.
 
     Args:
         x (float): The crisp input value.
@@ -17,7 +16,6 @@ def linear_interpolate(x, x_points, y_points):
     Returns:
         float: The calculated membership degree (the y-value for the input x).
     """
-    # Handle cases where x is outside the defined range of x_points
     if x <= x_points[0]:
         return y_points[0]
     if x >= x_points[-1]:
@@ -57,6 +55,11 @@ CLOUD_MFS = {
     'Sunny':         {'x': [0, 20, 40],   'y': [1, 1, 0]},
     'Partly Cloudy': {'x': [20, 50, 80],  'y': [0, 1, 0]},
     'Overcast':      {'x': [60, 80, 100], 'y': [0, 1, 1]}
+}
+
+SPEED_MFS = {
+    'Slow': {'x': [0, 25, 75], 'y': [1, 1, 0]},
+    'Fast': {'x': [25, 75, 100], 'y': [0, 1, 1]}
 }
 
 # =============================================================================
@@ -107,34 +110,33 @@ def plot_mfs(title, xlabel, mf_definitions, crisp_input=None, input_name="Input"
     plt.show()
 
 def plot_clipped_output_sets(rule_strengths):
+    """
+    Dynamically clips the original output MFs by the rule strengths and plots them.
+    """
     slow_strength = rule_strengths['Slow']
     fast_strength = rule_strengths['Fast']
     speed = np.arange(0, 100.1, 0.1)
 
-    # The plateau ends at x=30.
-    slow_x_points = [0, 60, 75, 100.1]
-    slow_y_points = [slow_strength, slow_strength, 0, 0]
+    slow_mf_orig = SPEED_MFS['Slow']
+    slow_mf_clipped = [min(linear_interpolate(s, slow_mf_orig['x'], slow_mf_orig['y']), slow_strength) for s in speed]
 
-    slow_mf_clipped = [linear_interpolate(s, slow_x_points, slow_y_points) for s in speed]
+    fast_mf_orig = SPEED_MFS['Fast']
+    fast_mf_clipped = [min(linear_interpolate(s, fast_mf_orig['x'], fast_mf_orig['y']), fast_strength) for s in speed]
 
-    # The ramp ends and the plateau begins at x=65.
-    fast_x_points = [0, 25, 65, 100.1]
-    fast_y_points = [0, 0, fast_strength, fast_strength]
-
-    fast_mf_clipped = [linear_interpolate(s, fast_x_points, fast_y_points) for s in speed]
-
+    # --- PLOTTING ---
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 5), sharex=True, num='Figure 1')
     fig.suptitle('Clipped Output Sets (Implication)', fontsize=14)
     ax1.plot(speed, slow_mf_clipped, color='blue', linewidth=1)
     ax1.fill_between(speed, slow_mf_clipped, color='blue', alpha=0.5)
-    ax1.legend([f'Slow, clipped at {slow_strength}'], loc='upper right')
+    ax1.legend([f'Slow, clipped at {slow_strength:.3f}'], loc='upper right')
     ax1.grid(True, linestyle='-', alpha=0.4)
     ax1.set_ylim(-0.05, 0.8)
     ax1.set_yticks(np.arange(0.0, 0.8, 0.2))
+
     green_color = '#2ca02c'
     ax2.plot(speed, fast_mf_clipped, color=green_color, linewidth=1)
     ax2.fill_between(speed, fast_mf_clipped, color=green_color, alpha=0.7)
-    ax2.legend([f'Fast, clipped at {fast_strength}'], loc='upper left')
+    ax2.legend([f'Fast, clipped at {fast_strength:.3f}'], loc='upper left')
     ax2.grid(True, linestyle='-', alpha=0.4)
     ax2.set_xlabel('Speed (mph)')
     ax2.set_ylabel('Membership Degree')
@@ -149,14 +151,14 @@ def plot_rule_application_and_aggregation(rule_strengths):
     fast_strength = rule_strengths['Fast']
     speed = np.arange(0, 101, 1)
 
-    # Define original MFs by their points
-    slow_mf_orig_x, slow_mf_orig_y = [0, 25, 50], [1, 1, 0]
-    fast_mf_orig_x, fast_mf_orig_y = [25, 50, 100], [0, 1, 1] # Simplified for plotting
+    slow_mf_orig_def = SPEED_MFS['Slow']
+    fast_mf_orig_def = SPEED_MFS['Fast']
 
     # Generate original shapes point-by-point
-    slow_mf_orig = [linear_interpolate(s, slow_mf_orig_x, slow_mf_orig_y) for s in speed]
-    fast_mf_orig = [linear_interpolate(s, fast_mf_orig_x, fast_mf_orig_y) for s in speed]
+    slow_mf_orig = [linear_interpolate(s, slow_mf_orig_def['x'], slow_mf_orig_def['y']) for s in speed]
+    fast_mf_orig = [linear_interpolate(s, fast_mf_orig_def['x'], fast_mf_orig_def['y']) for s in speed]
 
+    # Dynamically clip and aggregate
     slow_mf_clipped = np.minimum(slow_mf_orig, slow_strength)
     fast_mf_clipped = np.minimum(fast_mf_orig, fast_strength)
     aggregated_shape = np.maximum(slow_mf_clipped, fast_mf_clipped)
