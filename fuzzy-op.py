@@ -209,8 +209,8 @@ def aggregate_and_defuzzify(rule_strengths):
 # MAIN SIMULATION
 # =============================================================================
 if __name__ == "__main__":
-    input_temp = 62
-    input_cover = 47
+    input_temp = 65
+    input_cover = 25
     print("\n" + "="*40)
     print("Fuzzy Logic Simulation")
     print("\n" + "="*40)
