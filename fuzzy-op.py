@@ -184,7 +184,7 @@ def evaluate_rules(temp_fuzz, cover_fuzz):
     print(f"Rule 1: IF Sunny ({cover_fuzz['Sunny']:.3f}) AND Warm ({temp_fuzz['Warm']:.3f}) THEN Fast")
     print(f"\t-> Firing Strength for Fast: min({cover_fuzz['Sunny']:.3f}, {temp_fuzz['Warm']:.3f}) = {strength_rule1:.3f}")
 
-    strength_rule2 = 0.167 # min(cover_fuzz['Partly Cloudy'], temp_fuzz['Cool'])
+    strength_rule2 = round(min(cover_fuzz['Partly Cloudy'], temp_fuzz['Cool']), 3)
     print(f"Rule 2: IF Partly Cloudy ({cover_fuzz['Partly Cloudy']:.3f}) AND Cool ({temp_fuzz['Cool']:.3f}) THEN Slow")
     print(f"\t-> Firing Strength for Slow: min({cover_fuzz['Partly Cloudy']:.3f}, {temp_fuzz['Cool']:.3f}) = {strength_rule2:.3f}\n")
     return {'Slow': strength_rule2, 'Fast': strength_rule1}
